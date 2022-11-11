@@ -6,12 +6,11 @@ from Models.Card import Card
 
 
 class Transaction(Model):
-    id_transaccion = IntegerField(primary_key=True)
-    id_cliente = ForeignKeyField(Client, to_field="id_cliente")
-    id_empleado = ForeignKeyField(Employee, to_field="id_empleado")
+    client_id = ForeignKeyField(Client)
+    employee_id = ForeignKeyField(Employee)
     total = DoubleField()
-    fecha = DateField()
-    id_tarjeta = ForeignKeyField(Card, to_field="id_tarjeta")
+    date = DateField()
+    card_id = ForeignKeyField(Card)
 
     class Meta:
         database = maria

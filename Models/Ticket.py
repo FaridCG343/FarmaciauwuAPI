@@ -5,10 +5,10 @@ from Models.Product import Product
 
 
 class Ticket(Model):
-    id_transaccion = ForeignKeyField(Transaction, to_field="id_transaccion")
-    id_producto = ForeignKeyField(Product, to_field="id_producto")
+    transaction_id = ForeignKeyField(Transaction)
+    product_id = ForeignKeyField(Product)
     subtotal = DoubleField()
-    cantidad = IntegerField()
+    quantity = IntegerField()
 
     class Meta:
         database = maria
@@ -17,9 +17,9 @@ class Ticket(Model):
 
     def getinfo(self) -> dict:
         c: dict = {
-            "transaccion": self.id_transaccion,
-            "producto": self.id_producto,
-            "cantidad": self.cantidad,
+            "transaccion": self.transaction_id,
+            "producto": self.product_id,
+            "cantidad": self.quantity,
             "subtotal": self.subtotal
         }
         return c

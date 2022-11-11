@@ -6,9 +6,9 @@ from Models.Transaction import Transaction
 
 
 class AccumulatedProducts(Model):
-    id_producto = ForeignKeyField(Product, to_field="id_producto")
-    id_tarjeta = ForeignKeyField(Card, to_field="id_tarjeta")
-    id_transaccion = ForeignKeyField(Transaction, to_field="id_transaccion")
+    product_id = ForeignKeyField(Product)
+    card_id = ForeignKeyField(Card)
+    transaction_id = ForeignKeyField(Transaction)
     units = IntegerField()
 
     class Meta:
@@ -17,9 +17,9 @@ class AccumulatedProducts(Model):
 
     def getinfo(self) -> dict:
         c: dict = {
-            "producto": self.id_producto,
-            "tarjeta": self.id_tarjeta,
-            "transaccion": self.id_transaccion,
+            "producto": self.product_id,
+            "tarjeta": self.card_id,
+            "transaccion": self.transaction_id,
             "units": self.units
         }
         return c

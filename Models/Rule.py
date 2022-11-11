@@ -4,14 +4,13 @@ from Models.Product import Product
 
 
 class Rule(Model):
-    id_regla = IntegerField(primary_key=True)
-    id_producto = ForeignKeyField(Product)
-    descripcion = CharField()
-    activo = BooleanField()
-    tipo = CharField(50)
-    compraX = IntegerField()
-    regaloY = IntegerField()
-    descuento = IntegerField()
+    product_id = ForeignKeyField(Product)
+    description = CharField()
+    active = BooleanField()
+    type = CharField(50)
+    purchaseX = IntegerField()
+    giftY = IntegerField()
+    discount = IntegerField()
 
     class Meta:
         database = maria
@@ -19,13 +18,13 @@ class Rule(Model):
 
     def getinfo(self) -> dict:
         c: dict = {
-            "id": self.id_producto,
-            "producto": self.id_producto,
-            "descripcion": self.descripcion,
-            "activo": self.activo,
-            "tipo": self.tipo,
-            "compra": self.compraX,
-            "gana": self.regaloY,
-            "descuento": self.descuento
+            "id": self.id,
+            "producto": self.product_id,
+            "descripcion": self.description,
+            "activo": self.active,
+            "tipo": self.type,
+            "compra": self.purchaseX,
+            "gana": self.giftY,
+            "descuento": self.discount
         }
         return c

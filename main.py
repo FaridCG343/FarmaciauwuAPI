@@ -1,8 +1,13 @@
-from fastapi import *
+from fastapi import FastAPI
 from Models.Databases import maria
-from Controllers import ClientController as Cc
+from Controllers.EmployeeController import employee_routes
+from dotenv import load_dotenv
+from Controllers.ClientController import cliente_routes
+
 
 uwuAPI = FastAPI(title="FarmaciauwuAPI", description="API para mi POS", version="1.0.0")
+uwuAPI.include_router(employee_routes, prefix="/employee")
+uwuAPI.include_router(cliente_routes, prefix="/client")
 
 
 @uwuAPI.on_event("startup")
@@ -22,11 +27,4 @@ async def index():
     return "Bienvenido"
 
 
-@uwuAPI.post("/client/affiliate")
-async def create_client(client):
-    Cc.client_create(client)
-
-
-@uwuAPI.get("/client/{client_id}")
-async def get_client(client_id):
-    return Cc.get_client(client_id)
+load_dotenv()

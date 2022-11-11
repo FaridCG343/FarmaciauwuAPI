@@ -3,12 +3,11 @@ from Models.Databases import maria
 
 
 class Client(Model):
-    id_cliente = IntegerField(primary_key=True)
-    nombre = CharField(50)
-    apellidos = CharField(100)
-    telefono = CharField(15)
-    correo = CharField(255)
-    direccion = CharField(255)
+    name = CharField(50)
+    lastname = CharField(100)
+    phoneNumber = CharField(15)
+    email = CharField(255)
+    address = CharField(255)
 
     class Meta:
         database = maria
@@ -16,11 +15,11 @@ class Client(Model):
 
     def getinfo(self) -> dict:
         c: dict = {
-            "id": self.id_cliente,
-            "nombre": self.nombre,
-            "apellidos": self.apellidos,
-            "telefono": self.telefono,
-            "correo": self.correo,
-            "direccion": self.direccion
+            "id": self.id,
+            "nombre": self.name,
+            "apellidos": self.lastname,
+            "telefono": self.phoneNumber,
+            "correo": self.email,
+            "direccion": self.address
         }
         return c

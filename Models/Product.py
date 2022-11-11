@@ -3,10 +3,9 @@ from Models.Databases import maria
 
 
 class Product(Model):
-    id_producto = IntegerField(primary_key=True)
-    nombre = CharField(50)
-    descripcion = CharField(255)
-    precio = DoubleField()
+    name = CharField(50)
+    description = CharField(255)
+    price = DoubleField()
 
     class Meta:
         database = maria
@@ -14,9 +13,9 @@ class Product(Model):
 
     def getinfo(self) -> dict:
         c: dict = {
-            "id": self.id_producto,
-            "nombre": self.nombre,
-            "descripcion": self.descripcion,
-            "precio": self.precio
+            "id": self.id,
+            "nombre": self.name,
+            "descripcion": self.description,
+            "precio": self.price
         }
         return c
