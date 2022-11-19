@@ -12,7 +12,7 @@ class Ticket(Model):
 
     class Meta:
         database = maria
-        table_name = "clients"
+        table_name = "tickets"
         primary_key = False
 
     def getinfo(self) -> dict:

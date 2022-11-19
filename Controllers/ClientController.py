@@ -1,3 +1,5 @@
+from os import getenv
+
 from Models.Client import Client
 from Models.Card import Card
 from Requests.ClienteRequest import ClienteRequest
@@ -22,13 +24,13 @@ async def client_create(c: ClienteRequest):
         email=c.correo,
         address=c.direccion
     )
-    new_client.save()
+    # new_client.save()
     num_cliente = new_client.getinfo()["id"]
     card = Card.create(
         client_id=num_cliente,
         register_date=date.today()
     )
-    card.save()
+    # card.save()
     response = JSONResponse({
         "numTarjeta": card.getinfo()["id"],
         "numCliente": num_cliente
@@ -38,10 +40,10 @@ async def client_create(c: ClienteRequest):
 
 @cliente_routes.get("/{client_id}")
 async def get_client(client_id):
+    print(getenv("HOST"))
     client = Client.select().where(Client.id == client_id).first()
     if client:
         card = Card.select().where(Card.client_id == client.getinfo()["id"]).first()
-
         r = JSONResponse({**client.getinfo(), "card_id": card.getinfo()["id"]})
         return r
     else:

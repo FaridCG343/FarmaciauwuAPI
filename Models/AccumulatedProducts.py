@@ -12,14 +12,15 @@ class AccumulatedProducts(Model):
     units = IntegerField()
 
     class Meta:
+        primary_key = False
         database = maria
         table_name = "accumulated_products"
 
     def getinfo(self) -> dict:
-        c: dict = {
+        info: dict = {
             "producto": self.product_id,
             "tarjeta": self.card_id,
             "transaccion": self.transaction_id,
             "units": self.units
         }
-        return c
+        return info
