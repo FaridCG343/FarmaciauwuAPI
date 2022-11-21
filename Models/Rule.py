@@ -10,7 +10,7 @@ class Rule(Model):
     type = CharField(50)
     purchaseX = IntegerField()
     giftY = IntegerField()
-    discount = IntegerField()
+    discount = DoubleField()
 
     class Meta:
         database = maria

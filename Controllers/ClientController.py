@@ -39,7 +39,7 @@ async def client_create(c: ClienteRequest):
 
 
 @cliente_routes.get("/{client_id}")
-async def get_client(client_id):
+async def get_client(client_id: int):
     print(getenv("HOST"))
     client = Client.select().where(Client.id == client_id).first()
     if client:

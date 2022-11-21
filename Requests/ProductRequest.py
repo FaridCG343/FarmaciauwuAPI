@@ -6,16 +6,19 @@ from fastapi import HTTPException
 class ProductTicket(BaseModel):
     product_id: int
     price: float
-    quantity: int
+    units: int
     subtotal: float
 
-    @pydantic.validator("quantity")
+    @pydantic.validator("units")
     @classmethod
     def quantity_validate(cls, value):
         if value <= 0:
-            raise HTTPException(400, "The quantity can't be less than 1")
+            raise HTTPException(400, "The units can't be less than 1")
         return value
 
 
-class Product(BaseModel):
+class ProductReward(BaseModel):
     product_id: int
+    units: int
+
+

@@ -1,7 +1,11 @@
 from jwt import encode, decode, exceptions
 from datetime import datetime, timedelta
 from os import getenv
+from dotenv import load_dotenv
 from fastapi.responses import JSONResponse
+
+
+load_dotenv()
 
 
 def expire_date(days: int):

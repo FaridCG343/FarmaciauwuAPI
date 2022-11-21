@@ -4,12 +4,14 @@ from Controllers.EmployeeController import employee_routes
 from dotenv import load_dotenv
 from Controllers.ClientController import cliente_routes
 from Controllers.TransactionsController import transaction_routes
+from Controllers.ProductController import product_routes
 
 
 uwuAPI = FastAPI(title="FarmaciauwuAPI", description="API para mi POS", version="1.0.0")
 uwuAPI.include_router(employee_routes, prefix="/employee")
 uwuAPI.include_router(cliente_routes, prefix="/client")
 uwuAPI.include_router(transaction_routes, prefix="/transaction")
+uwuAPI.include_router(product_routes, prefix="/product")
 
 
 @uwuAPI.on_event("startup")
@@ -22,11 +24,6 @@ def startup():
 def shutdown():
     if not Databases.maria.is_closed():
         Databases.maria.close()
-
-
-@uwuAPI.get("/")
-async def index():
-    return "Bienvenido"
 
 
 load_dotenv()
