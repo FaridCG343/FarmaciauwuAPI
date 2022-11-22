@@ -1,20 +1,15 @@
-import pydantic
-from pydantic import BaseModel, validator
+from pydantic.types import NegativeInt
+from pydantic.typing import Optional
+from pydantic import BaseModel, validator, conint
 from fastapi import HTTPException
 
 
 class ProductTicket(BaseModel):
     product_id: int
     price: float
-    units: int
+    units: conint(gt=0)
+    bonus_units: Optional[conint(lt=1)] = 0
     subtotal: float
-
-    @pydantic.validator("units")
-    @classmethod
-    def quantity_validate(cls, value):
-        if value <= 0:
-            raise HTTPException(400, "The units can't be less than 1")
-        return value
 
 
 class ProductReward(BaseModel):

@@ -16,7 +16,7 @@ transaction_routes = APIRouter()
 async def get_rewards(request: TransactionRequest):
     rewards = []
     for product in request.products:
-        if get_total_accumulated(product, request.card_id) is not None:
+        if get_total_accumulated(product, request.card_id):
             rule, total_accumulated = get_total_accumulated(product, request.card_id)
             if total_accumulated >= rule.purchaseX:
                 rewards.append({"product_id": product.product_id,
@@ -35,6 +35,7 @@ async def sale(request: TransactionSaleRequest):
     new_transaction = Transaction.create(
         employee_id=request.employee_id,
         date=date.today(),
+        card_id=request.card_id,
         total=request.total
     )
     transaction_id = new_transaction.id
@@ -56,23 +57,25 @@ async def sale(request: TransactionSaleRequest):
                     transaction_id=transaction_id,
                     units=product.units
                 )
+                if product.bonus_units < 0:
+                    Ap.create(
+                        product_id=product.product_id,
+                        card_id=request.card_id,
+                        transaction_id=transaction_id,
+                        units=product.bonus_units
+                    )
+                    Ap.create(
+                        product_id=product.product_id,
+                        card_id=request.card_id,
+                        transaction_id=transaction_id,
+                        units=product.bonus_units * rule.purchaseX
+                    )
     new_transaction.total = new_total
     new_transaction.save()
-    if request.card_id:
-        for reward in request.rewards:
-            rule = get_rule(reward.product_id)
-            if rule:
-                negative_units = 0-(rule.purchaseX*reward.units + rule.giftY * reward.units)
-                Ap.create(
-                    product_id=reward.product_id,
-                    card_id=request.card_id,
-                    transaction_id=transaction_id,
-                    units=negative_units
-                )
     response = {
         "message": "Your purchase has been registered",
         "details": request.products,
-        "total": request.total,
+        "total": new_total,
         "transaction_number": transaction_id
     }
     return response
@@ -90,21 +93,22 @@ async def redeem_rewards(request: TransactionRedeemRequest):
 
     new_products = []
     for product in request.products:
-        rule, total_accumulated = get_total_accumulated(product, request.card_id)
-        if rule and product.product_id in reward_units.keys():
-            if (total_accumulated - (reward_units[product.product_id] * rule.purchaseX)) < 0:
-                raise HTTPException(406, "")
-                # Add to message "La cantidad de regalos a reclamar es mayor a lo que corresponde"
-            if (total_accumulated - (reward_units[product.product_id] * rule.purchaseX)) == 0:
-                product.units += reward_units[product.product_id]
-            if (total_accumulated - (reward_units[product.product_id] * rule.purchaseX)) > 0:
-                product.subtotal -= product.price * product.units
-                units_to_add = reward_units[product.product_id] - product.units
-                product.units += units_to_add
+        if get_total_accumulated(product, request.card_id):
+            rule, total_accumulated = get_total_accumulated(product, request.card_id)
+            if rule and product.product_id in reward_units.keys():
+                if (total_accumulated - (reward_units[product.product_id] * rule.purchaseX)) < 0:
+                    raise HTTPException(406, "The reward units to claim is greater than ")
+                    # Add to message "lo que corresponde"
+                if (total_accumulated - (reward_units[product.product_id] * rule.purchaseX)) == 0:
+                    product.units += reward_units[product.product_id]
+                    product.bonus_units -= reward_units[product.product_id]
+                if (total_accumulated - (reward_units[product.product_id] * rule.purchaseX)) > 0:
+                    units_to_add = abs(reward_units[product.product_id] - product.units)
+                    product.units += units_to_add
+                    product.bonus_units -= reward_units[product.product_id]
         new_products.append(product)
     response["card_id"] = request.card_id
     response["products"] = new_products
-    response["rewards"] = request.rewards
     return response
 
 
@@ -115,7 +119,7 @@ def get_total_accumulated(product, card_id) -> list or None:
             where(Ap.product_id == int(product.product_id)). \
             where(Ap.card_id == int(card_id)). \
             group_by(Ap.product_id).dicts()
-        total_accumulated = product.units
+        total_accumulated = (product.units + product.bonus_units) + (product.bonus_units * rule.purchaseX)
         if results:
             total_accumulated += results[0]["Cant"]
         return [rule, total_accumulated]
