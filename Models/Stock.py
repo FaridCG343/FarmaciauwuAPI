@@ -1,18 +1,15 @@
 from peewee import *
 from Models.Databases import maria
-from Models.Transaction import Transaction
 from Models.Product import Product
 from Models.Store import Store
 
 
-class Ticket(Model):
-    transaction_id = ForeignKeyField(Transaction)
+class Stock(Model):
     product_id = ForeignKeyField(Product)
-    subtotal = DoubleField()
-    units = IntegerField()
     store_id = ForeignKeyField(Store)
+    available_products = IntegerField()
 
     class Meta:
         database = maria
-        table_name = "tickets"
+        table_name = "stock"
         primary_key = False

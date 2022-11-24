@@ -12,14 +12,3 @@ class Client(Model):
     class Meta:
         database = maria
         table_name = "clients"
-
-    def getinfo(self) -> dict:
-        c: dict = {
-            "id": self.id,
-            "nombre": self.name,
-            "apellidos": self.lastname,
-            "telefono": self.phoneNumber,
-            "correo": self.email,
-            "direccion": self.address
-        }
-        return c

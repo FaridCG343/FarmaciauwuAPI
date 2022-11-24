@@ -10,11 +10,3 @@ class Card(Model):
     class Meta:
         database = maria
         table_name = "cards"
-
-    def getinfo(self) -> dict:
-        c: dict = {
-            "id": self.id,
-            "cliente": self.client_id,
-            "fecha de registro": self.register_date
-        }
-        return c

@@ -8,8 +8,6 @@ class ProductTicket(BaseModel):
     product_id: int
     price: float
     units: conint(gt=0)
-    bonus_units: Optional[conint(lt=1)] = 0
-    subtotal: float
 
 
 class ProductReward(BaseModel):

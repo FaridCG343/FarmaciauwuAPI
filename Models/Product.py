@@ -6,16 +6,8 @@ class Product(Model):
     name = CharField(50)
     description = CharField(255)
     price = DoubleField()
+    status = CharField(100)
 
     class Meta:
         database = maria
         table_name = "products"
-
-    def getinfo(self) -> dict:
-        c: dict = {
-            "id": self.id,
-            "nombre": self.name,
-            "descripcion": self.description,
-            "precio": self.price
-        }
-        return c
