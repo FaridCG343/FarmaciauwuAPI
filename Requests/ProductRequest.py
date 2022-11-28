@@ -1,7 +1,4 @@
-from pydantic.types import NegativeInt
-from pydantic.typing import Optional
 from pydantic import BaseModel, validator, conint
-from fastapi import HTTPException
 
 
 class ProductTicket(BaseModel):

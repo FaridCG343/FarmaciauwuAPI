@@ -1,45 +1,60 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from peewee import fn
 from Models.Card import Card
 from Models.Transaction import Transaction
 from Models.Ticket import Ticket
 from Models.Rule import Rule
 from Models.AccumulatedProducts import AccumulatedProducts as Ap
-from Requests.TransactionRequest import TransactionQuoteRequest, TransactionSaleRequest, TransactionRedeemRequest
+from Requests.TransactionRequest import TransactionSaleRequest, TransactionRedeemRequest
 from fastapi.responses import JSONResponse
-from datetime import date
+from jwtFunctions import verify_cashier_access
 
 transaction_routes = APIRouter()
 
 
-@transaction_routes.post("/quote")
-async def quote(request: TransactionQuoteRequest):
-    pass
-
-
 @transaction_routes.post("/sale")
-async def sale(request: TransactionSaleRequest):
+async def sale(request: TransactionSaleRequest, employee=Depends(verify_cashier_access)):
+    new_transaction = Transaction.create(
+        employee_id=employee["employee"]
+    )
     if request.card_id:
         card = Card.select().where(Card.id == request.card_id).first()
         if card is None:
             return JSONResponse({"message": "The card was not found"}, 404)
+        new_transaction.card_id = request.card_id
     products = []
     rewards = []
     total = 0
+
     for product in request.products:
         product_temp = product.dict()
         product_temp['subtotal'] = product.units * product.price
         total += product_temp["subtotal"]
+        Ticket.create(
+            transaction_id=new_transaction.id,
+            product_id=product.product_id,
+            subtotal=(product.units * product.price),
+            units=product.units,
+            store_id=employee["store"]
+        )
         if request.card_id:
             if get_total_accumulated(product, request.card_id):
                 rule, accumulated = get_total_accumulated(product, request.card_id)
-                if accumulated/rule.purchaseX > 0:
+                Ap.create(
+                    product_id=product.product_id,
+                    card_id=request.card_id,
+                    transaction_id=new_transaction.id,
+                    units=product.units
+                )
+                if accumulated//rule.purchaseX > 0:
                     reward = {
                         "product_id": product.product_id,
-                        "units": int(round(accumulated/rule.purchaseX))
+                        "units": int(accumulated/rule.purchaseX)
                     }
                     rewards.append(reward)
         products.append(product_temp)
+    new_transaction.total = total
+    new_transaction.save()
     response = {
         "card": request.card_id,
         "products": products,
@@ -50,8 +65,37 @@ async def sale(request: TransactionSaleRequest):
 
 
 @transaction_routes.post("/redeem")
-async def redeem_rewards(request: TransactionRedeemRequest):
-    pass
+async def redeem_rewards(request: TransactionRedeemRequest, employee=Depends(verify_cashier_access)):
+    new_transaction = Transaction.create(
+        employee_id=employee["employee"],
+        total=0,
+    )
+    card = Card.select().where(Card.id == request.card_id).first()
+    if card is None:
+        return JSONResponse({"message": "The card was not found"}, 404)
+    new_transaction.card_id = request.card_id
+    for product in request.rewards:
+        if get_total_accumulated(product, card.id):
+            rule, total_accumulated = get_total_accumulated(product, card.id)
+            max_pieces_to_redeem = (total_accumulated//rule.purchaseX) * rule.giftY
+            if max_pieces_to_redeem <= product.units:
+                Ticket.create(
+                    transaction_id=new_transaction.id,
+                    product_id=product.product_id,
+                    subtotal=0,
+                    units=product.units,
+                    store_id=employee["store"]
+                )
+                negative_accumulation = 0 - (product.units * rule.purchaseX)
+                Ap.create(
+                    transaction_id=new_transaction.id,
+                    product_id=product.product_id,
+                    card_id=card.id,
+                    units = negative_accumulation
+                )
+            else:
+                raise HTTPException(400, {"message", ""})
+    new_transaction.save()
 
 
 def get_total_accumulated(product, card_id) -> list or None:

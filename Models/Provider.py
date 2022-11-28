@@ -4,7 +4,6 @@ from Models.Databases import maria
 
 class Provider(Model):
     name = CharField()
-    lastname = CharField()
     phone_number = CharField()
     email = CharField()
 

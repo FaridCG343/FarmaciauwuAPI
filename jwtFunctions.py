@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from os import getenv
 from dotenv import load_dotenv
 from fastapi.responses import JSONResponse
+from fastapi import Cookie, HTTPException, Depends
 
 
 load_dotenv()
@@ -19,12 +20,24 @@ def write_token(data: dict):
     return token
 
 
-def validate_token(token, output=False):
+async def validate_token(token: str = Cookie(None)):
+    if token is None:
+        raise HTTPException(302, {"message": "Please login"})
     try:
-        if output:
-            return decode(token, key=getenv("SECRET"), algorithms=["HS256"])
-        decode(token, key=getenv("SECRET"), algorithms=["HS256"])
+        return decode(token, key=getenv("SECRET"), algorithms=["HS256"])
     except exceptions.DecodeError:
-        return JSONResponse(content={"message": "Invalid token"}, status_code=401)
+        raise HTTPException(detail={"message": "Invalid token"}, status_code=401)
     except exceptions.ExpiredSignatureError:
-        return JSONResponse(content={"message": "token expired"}, status_code=401)
+        raise HTTPException(detail={"message": "token expired"}, status_code=401)
+
+
+async def verify_inventory_manager_access(user_data=Depends(validate_token)):
+    if not user_data["position"] == "Inventory Manager":
+        raise HTTPException(401)
+    return user_data
+
+
+async def verify_cashier_access(user_data=Depends(validate_token)):
+    if user_data["position"] not in ["Cashier", "Supervisor", "Manager"]:
+        raise HTTPException(401)
+    return user_data

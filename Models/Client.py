@@ -12,3 +12,12 @@ class Client(Model):
     class Meta:
         database = maria
         table_name = "clients"
+
+    def todict(self) -> dict:
+        return {
+            "name": self.name,
+            "lastname": self.lastname,
+            "phoneNumber": self.phoneNumber,
+            "address": self.address,
+            "email": self.email
+        }

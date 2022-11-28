@@ -1,5 +1,6 @@
 from peewee import *
 from Models.Databases import maria
+from Models.Store import Store
 
 
 class Employee(Model):
@@ -17,7 +18,8 @@ class Employee(Model):
 class User(Model):
     employee_id = ForeignKeyField(Employee)
     password = CharField()
-    is_admin = BooleanField()
+    position = CharField()
+    store_id = ForeignKeyField(Store)
 
     class Meta:
         database = maria

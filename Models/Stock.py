@@ -12,4 +12,4 @@ class Stock(Model):
     class Meta:
         database = maria
         table_name = "stock"
-        primary_key = False
+        primary_key = CompositeKey("product_id", "store_id")

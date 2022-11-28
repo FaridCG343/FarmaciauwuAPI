@@ -25,14 +25,14 @@ async def client_create(c: ClienteRequest):
         address=c.direccion
     )
     # new_client.save()
-    num_cliente = new_client.getinfo()["id"]
+    num_cliente = new_client.id
     card = Card.create(
         client_id=num_cliente,
         register_date=date.today()
     )
     # card.save()
     response = JSONResponse({
-        "numTarjeta": card.getinfo()["id"],
+        "numTarjeta": card.id,
         "numCliente": num_cliente
     })
     return response
@@ -40,11 +40,10 @@ async def client_create(c: ClienteRequest):
 
 @cliente_routes.get("/{client_id}")
 async def get_client(client_id: int):
-    print(getenv("HOST"))
     client = Client.select().where(Client.id == client_id).first()
     if client:
-        card = Card.select().where(Card.client_id == client.getinfo()["id"]).first()
-        r = JSONResponse({**client.getinfo(), "card_id": card.getinfo()["id"]})
+        card = Card.select().where(Card.client_id == client.id).first()
+        r = JSONResponse({**client.todict(), "card_id": card.id})
         return r
     else:
         return JSONResponse({"message": "Client not found"}, 404)

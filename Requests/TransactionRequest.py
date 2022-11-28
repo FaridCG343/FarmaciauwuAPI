@@ -1,8 +1,6 @@
-import pydantic
 from pydantic import BaseModel
 from Requests.ProductRequest import ProductTicket, ProductReward
 from pydantic.typing import Optional
-from enum import Enum
 from typing import List
 
 
@@ -17,10 +15,8 @@ class TransactionQuoteRequest(BaseModel):
 
 
 class TransactionSaleRequest(BaseModel):
-    employee_id: int
     card_id: Optional[int] = None
     products: List[ProductTicket]
-    payments: List[Payment]
 
 
 class TransactionRedeemRequest(BaseModel):

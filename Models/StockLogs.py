@@ -9,8 +9,8 @@ class StockLogs(Model):
     provider_id = ForeignKeyField(Provider)
     product_id = ForeignKeyField(Product)
     store_id = ForeignKeyField(Store)
-    delivery_quantity = IntegerField()
-    delivery_date = DateField()
+    quantity = IntegerField()
+    date = DateField()
 
     class Meta:
         database = maria
