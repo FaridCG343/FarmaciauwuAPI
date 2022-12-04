@@ -1,5 +1,3 @@
-from os import getenv
-
 from Models.Client import Client
 from Models.Card import Card
 from Requests.ClienteRequest import ClienteRequest

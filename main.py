@@ -8,16 +8,16 @@ from Controllers.ProductController import product_routes
 from Controllers.StoreController import store_routes
 from Controllers.ProviderController import provider_routes
 from Controllers.StockController import stock_routes
-# from jwtFunctions import verify_manager_access
+from jwtFunctions import verify_cashier_access, verify_inventory_manager_access
 
 
 uwuAPI = FastAPI(title="FarmaciauwuAPI", description="API para mi POS", version="2.0.0")
 uwuAPI.include_router(employee_routes, prefix="/employee")
-uwuAPI.include_router(cliente_routes, prefix="/client")
+uwuAPI.include_router(cliente_routes, prefix="/client", dependencies=[Depends(verify_cashier_access)])
 uwuAPI.include_router(transaction_routes, prefix="/transaction")
 uwuAPI.include_router(product_routes, prefix="/product")
 uwuAPI.include_router(store_routes, prefix="/store")
-uwuAPI.include_router(provider_routes, prefix="/provider")
+uwuAPI.include_router(provider_routes, prefix="/provider", dependencies=[Depends(verify_inventory_manager_access)])
 uwuAPI.include_router(stock_routes, prefix="/stock")
 
 
