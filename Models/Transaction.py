@@ -9,6 +9,7 @@ class Transaction(Model):
     total = DoubleField()
     date = DateField()
     card_id = ForeignKeyField(Card)
+    status = CharField(50)
 
     class Meta:
         database = maria

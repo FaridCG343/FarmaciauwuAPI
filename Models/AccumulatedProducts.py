@@ -12,6 +12,6 @@ class AccumulatedProducts(Model):
     units = IntegerField()
 
     class Meta:
-        primary_key = False
+        primary_key = CompositeKey('product_id', 'transaction_id')
         database = maria
         table_name = "accumulated_products"

@@ -1,43 +1,23 @@
-from os import getenv
 from fastapi import APIRouter, HTTPException, Response
 from Requests.EmployeeRequest import EmployeeAuth, EmployeeRegister
 from Models.Employee import User, Employee
 from jwtFunctions import write_token
-from fastapi.responses import JSONResponse
-from cryptography.fernet import Fernet
 from dotenv import load_dotenv
 from Models.Store import Store
+from fastapi import Depends
+from jwtFunctions import verify_manager_access, verify_credentials
 
 
 employee_routes = APIRouter()
 load_dotenv()
-key = getenv("SALT")
-fernet = Fernet(key.encode())
 
 
 @employee_routes.post("/login")
 async def login(user: EmployeeAuth, response: Response):
-    em = User.select().where(User.employee_id == user.id).dicts()
-    if em:
-        em = em[0]
-        store = Store.select().\
-            where(Store.id == em["store_id"]).\
-            first()
-        if not store.active:
-            raise HTTPException(401, {"message": "The store is inactive"})
-        if fernet.decrypt(em["password"].encode()).decode() == user.password:
-            info = {
-                "employee": em["employee_id"],
-                "position": em["position"],
-                "store": em["store_id"]
-            }
-            token = write_token(info)
-            response.set_cookie(key="token", value=token, httponly=True)
-            return {"message": "Login successful"}
-        else:
-            return JSONResponse(content={"message": "incorrect password"}, status_code=401)
-    else:
-        return JSONResponse(content={"message": "Employee not found"}, status_code=404)
+    info = verify_credentials(user)
+    token = write_token(info)
+    response.set_cookie(key="token_c", value=token, httponly=True)
+    return {"message": "Login successful", "token": token}
 
 
 @employee_routes.post("/logout")
@@ -46,7 +26,7 @@ async def logout(response: Response):
     return {"message": "Logout successful"}
 
 
-@employee_routes.post("/register")
+@employee_routes.post("/register", dependencies=[Depends(verify_manager_access)])
 async def register(new_user: EmployeeRegister):
     store = Store.select().where(Store.id == new_user.store).first()
     if store is None:
