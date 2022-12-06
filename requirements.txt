@@ -41,3 +41,10 @@ wheel=0.37.1=pyhd3eb1b0_0
 xz=5.2.6=hca72f7f_0
 zipp=3.9.0=pyhd8ed1ab_0
 zlib=1.2.13=hfd90126_4
+
+peewee~=3.15.3
+python-dotenv~=0.21.0
+fastapi~=0.85.1
+pydantic~=1.10.2
+cryptography~=37.0.1
+pyjwt~=2.6.0

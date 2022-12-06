@@ -20,6 +20,7 @@ class User(Model):
     password = CharField()
     position = CharField()
     store_id = ForeignKeyField(Store)
+    userName = CharField(100, unique=True)
 
     class Meta:
         database = maria

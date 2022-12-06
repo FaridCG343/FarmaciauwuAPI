@@ -12,15 +12,13 @@ class ClienteRequest(BaseModel):
     direccion: Optional[str] = None
 
 
-    @validator("telefono")
     @classmethod
     def phone_validate(cls, value):
-        if re.search("[0-9]{3}(-| )[0-9]{3}(-| )[0-9]{2}(-| )[0-9]{2}", value) is None:
-            raise ValidationError(400, "The phone-number must be like 999-999-99-99")
+        if re.search("^[0-9]{3}(-| )[0-9]{3}(-| )[0-9]{2}(-| )[0-9]{2}$", value) is None:
+            raise ValidationError("The phone-number must be like 999-999-99-99")
         return value
 
 
-    @validator("correo")
     @classmethod
     def email_validate(cls, value):
         if re.search("[a-zA-Z0-9]+@[a-zA-Z]+[.].+", value) is None:

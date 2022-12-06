@@ -22,7 +22,6 @@ class ProviderRequest(BaseModel):
 
 
 class ProviderUpdateRequest(BaseModel):
-    id: int
     name: Optional[str] = None
     phoneNumber: Optional[str] = None
     email: Optional[str] = None

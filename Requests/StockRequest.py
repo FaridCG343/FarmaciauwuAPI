@@ -9,4 +9,4 @@ class StockRequest(BaseModel):
 
 class StockDepletionRequest(BaseModel):
     product: int
-    cant: conint(lt=0)
+    cant: conint(gt=0)

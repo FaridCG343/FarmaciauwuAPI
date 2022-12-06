@@ -10,3 +10,10 @@ class Store(Model):
     class Meta:
         database = maria
         table_name = "stores"
+
+    def todict(self):
+        return {
+            "name": self.name,
+            "address": self.address,
+            "active": self.active
+        }

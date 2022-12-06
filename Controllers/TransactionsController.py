@@ -12,7 +12,7 @@ from jwtFunctions import verify_cashier_access, verify_credentials
 from Models.Stock import Stock
 
 
-transaction_routes = APIRouter()
+transaction_routes = APIRouter(tags=['Transaction'])
 
 
 @transaction_routes.post("/quote", dependencies=[Depends(verify_cashier_access)])
@@ -145,7 +145,7 @@ async def redeem_rewards(request: TransactionRedeemRequest, employee=Depends(ver
 @transaction_routes.put("/cancel/{transaction_id}")
 async def cancel(transaction_id: int, user=Depends(verify_cashier_access), user_c: EmployeeAuth = None):
     if user['position'] == 'Cashier':
-        if user_c.id != 0:
+        if user_c.username != "":
             user_a = verify_credentials(user_c)
             if user_a['position'] != 'Manager':
                 return JSONResponse({"message": "The credentials belong to an unauthorized person"}, 401)

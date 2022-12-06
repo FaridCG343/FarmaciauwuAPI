@@ -1,4 +1,17 @@
-from pydantic import BaseModel, validator, conint
+from pydantic import BaseModel, conint
+from pydantic.typing import Optional
+
+
+class ProductRequest(BaseModel):
+    name: str
+    description: str
+    price: float
+
+
+class ProductUpdate(BaseModel):
+    name: Optional[str] = ''
+    description: Optional[str] = ''
+    price: Optional[float] = None
 
 
 class ProductTicket(BaseModel):

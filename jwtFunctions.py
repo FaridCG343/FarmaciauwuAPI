@@ -34,44 +34,45 @@ async def validate_token(token_c: str = Cookie(None), token_h: str = Header(None
     except exceptions.DecodeError:
         raise HTTPException(detail={"message": "Invalid token"}, status_code=401)
     except exceptions.ExpiredSignatureError:
-        raise HTTPException(detail={"message": "token expired"}, status_code=401)
+        raise HTTPException(detail={"message": "Token expired"}, status_code=401)
 
 
 async def verify_inventory_manager_access(user_data=Depends(validate_token)):
     if not user_data["position"] == "Inventory Manager":
-        raise HTTPException(401)
+        raise HTTPException(401, detail={"message": "You cannot perform this action due to lack of permissions."})
     return user_data
 
 
 async def verify_cashier_access(user_data=Depends(validate_token)):
     if user_data["position"] not in ["Cashier", "Supervisor", "Manager"]:
-        raise HTTPException(401)
+        raise HTTPException(401, detail={"message": "You cannot perform this action due to lack of permissions."})
     return user_data
 
 
 async def verify_manager_access(user_data=Depends(validate_token)):
     if user_data["position"] not in ["Manager"]:
-        raise HTTPException(401)
+        raise HTTPException(401, detail={"message": "You cannot perform this action due to lack of permissions."})
     return user_data
 
 
 async def verify_supervisor_access(user_data=Depends(validate_token)):
     if user_data["position"] not in ["Supervisor", "Manager"]:
-        raise HTTPException(401)
+        raise HTTPException(401, detail={"message": "You cannot perform this action due to lack of permissions."})
     return user_data
 
 
 def verify_credentials(user):
     key = getenv("SALT")
     fernet = Fernet(key.encode())
-    em = User.select().where(User.employee_id == user.id).dicts()
+    username = user.username.lower()
+    em = User.select().where(User.userName == username).dicts()
     if em:
         em = em[0]
         store = Store.select(). \
             where(Store.id == em["store_id"]). \
             first()
         if not store.active:
-            raise HTTPException(401, {"message": "The store is inactive"})
+            raise HTTPException(400, {"message": "The store is inactive"})
         if fernet.decrypt(em["password"].encode()).decode() == user.password:
             info = {
                 "employee": em["employee_id"],
@@ -80,6 +81,13 @@ def verify_credentials(user):
             }
             return info
         else:
-            raise HTTPException(detail={"message": "incorrect password"}, status_code=401)
+            raise HTTPException(detail={"message": "incorrect password"}, status_code=400)
     else:
         raise HTTPException(detail={"message": "Employee not found"}, status_code=404)
+
+
+def encrypt_password(password_to_encrypt: str):
+    key = getenv("SALT")
+    fernet = Fernet(key.encode())
+    password = fernet.encrypt(password_to_encrypt.encode())
+    return password
