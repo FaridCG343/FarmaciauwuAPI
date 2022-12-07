@@ -4,6 +4,7 @@ from Requests.StockRequest import StockRequest, StockDepletionRequest
 from Models.Stock import Stock
 from Models.StockLogs import StockLogs
 from responseHelper import *
+from Models.Product import Product
 
 
 stock_routes = APIRouter(tags=["Stock"])
@@ -22,8 +23,10 @@ async def add_to_stock(request: StockRequest, user_info=Depends(verify_inventory
         stock = Stock.create(
             store_id=user_info["store"],
             product_id=request.product,
-            available_product=0
+            available_products=0
         )
+    if stock.available_products is None:
+        stock.available_products = 0
     stock.available_products += request.cant
     stock.save()
     StockLogs.create(
@@ -47,6 +50,14 @@ async def depletion(request: StockDepletionRequest, user_info=Depends(verify_inv
         where(Stock.product_id == request.product). \
         where(Stock.store_id == user_info["store"]). \
         first()
+    if stock is None:
+        stock = Stock.create(
+            store_id=user_info["store"],
+            product_id=request.product,
+            available_products=0
+        )
+    if stock.available_products is None:
+        stock.available_products = 0
     stock.available_products -= request.cant
     if stock.available_products - request.cant < 0:
         raise HTTPException(400,
@@ -58,3 +69,24 @@ async def depletion(request: StockDepletionRequest, user_info=Depends(verify_inv
         quantity=request.cant
     )
     return {"message": "Successful"}
+
+
+@stock_routes.put("/full/inventario")
+async def full(user_info=Depends(verify_inventory_manager_access)):
+    products = Product.select().dicts()
+    for product in products:
+        stock = Stock.select(). \
+            where(Stock.product_id == product['id']). \
+            where(Stock.store_id == user_info["store"]). \
+            first()
+        if stock is None:
+            stock = Stock.create(
+                store_id=user_info["store"],
+                product_id=product['id'],
+                available_products=0
+            )
+        if stock.available_products is None:
+            print(stock)
+        temp = 100
+        stock.available_products = temp
+        stock.save()

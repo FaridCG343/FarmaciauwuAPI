@@ -10,12 +10,18 @@ from Requests.EmployeeRequest import EmployeeAuth
 from fastapi.responses import JSONResponse
 from jwtFunctions import verify_cashier_access, verify_credentials
 from Models.Stock import Stock
+from responseHelper import *
 
 
 transaction_routes = APIRouter(tags=['Transaction'])
 
 
-@transaction_routes.post("/quote", dependencies=[Depends(verify_cashier_access)])
+@transaction_routes.post("/quote", dependencies=[Depends(verify_cashier_access)], responses={
+    200: set_custom_response("OK",
+                             {"card": 1, "products": [{"product_id": 1, "price": 1.0, "units": 1, "subtotal": 10}],
+                              "total": 10, "rewards": [{"product_id": 1, "units": 1}]}),
+    404: set_404_response()
+})
 async def quote(request: TransactionSaleRequest):
     if request.card_id:
         card = Card.select().where(Card.id == request.card_id).first()
@@ -48,7 +54,12 @@ async def quote(request: TransactionSaleRequest):
     return JSONResponse(response)
 
 
-@transaction_routes.post("/sale")
+@transaction_routes.post("/sale", responses={
+    200: set_custom_response("OK",
+                             {"transaction": 1,
+                              "card": 1, "products": [{"product_id": 1, "price": 1.0, "units": 1, "subtotal": 10}],
+                              "total": 10, "rewards": [{"product_id": 1, "units": 1}]}),
+    404: set_404_response()})
 async def sale(request: TransactionSaleRequest, employee=Depends(verify_cashier_access)):
     new_transaction = Transaction.create(
         employee_id=employee["employee"]
@@ -92,6 +103,7 @@ async def sale(request: TransactionSaleRequest, employee=Depends(verify_cashier_
     new_transaction.total = total
     new_transaction.save()
     response = {
+        "transaction": new_transaction.id,
         "card": request.card_id,
         "products": products,
         "total": total,
@@ -100,7 +112,10 @@ async def sale(request: TransactionSaleRequest, employee=Depends(verify_cashier_
     return JSONResponse(response)
 
 
-@transaction_routes.post("/redeem")
+@transaction_routes.post("/redeem", responses={
+    200: set_custom_response("OK", {"card": 1, "transaction": 1, "products":
+                                    [{"product_id": 1, "price": 1.0, "units": 1, "subtotal": 10}], "total": 0})
+})
 async def redeem_rewards(request: TransactionRedeemRequest, employee=Depends(verify_cashier_access)):
     response = {'card': request.card_id}
     products = []
@@ -137,18 +152,27 @@ async def redeem_rewards(request: TransactionRedeemRequest, employee=Depends(ver
                 new_transaction.delete_instance()
                 raise HTTPException(400, {"message": "No claim can be made for excess parts"})
     new_transaction.save()
+    response["transaction"] = new_transaction.id
     response['products'] = products
     response['total'] = 0
     return response
 
 
-@transaction_routes.put("/cancel/{transaction_id}")
+@transaction_routes.put("/cancel/{transaction_id}", responses={
+    200: set_custom_response("OK", {"message": "The transaction has been canceled"}),
+    300: set_custom_response("", {"message": "The credentials belong to an unauthorized person"}),
+    400: set_custom_response("Bad request", {"detail": {"message": "Cannot be cancelled because parts have been claimed"
+                                                        "with the accumulated proceeds of this transaction."}}),
+    401: set_401_response(),
+
+})
 async def cancel(transaction_id: int, user=Depends(verify_cashier_access), user_c: EmployeeAuth = None):
     if user['position'] == 'Cashier':
         if user_c.username != "":
             user_a = verify_credentials(user_c)
             if user_a['position'] != 'Manager':
-                return JSONResponse({"message": "The credentials belong to an unauthorized person"}, 401)
+                raise HTTPException(detail={"message": "The credentials belong to an unauthorized person"},
+                                    status_code=401)
         else:
             return JSONResponse({"message": "Enter the credentials of someone authorized"}, 300)
     transaction = Transaction.select().where(Transaction.id == transaction_id).first()
@@ -166,8 +190,9 @@ async def cancel(transaction_id: int, user=Depends(verify_cashier_access), user_
                     where(Ap.card_id == transaction.card_id). \
                     group_by(Ap.product_id).first()
                 if results.Cant - ticket['units'] < 0:
-                    return JSONResponse({"message": "Cannot be cancelled because parts have been claimed "
-                                                    "with the accumulated proceeds of this transaction."}, 400)
+                    raise HTTPException(detail={"message": "Cannot be cancelled because parts have been claimed "
+                                                "with the accumulated proceeds of this transaction."},
+                                        status_code=400)
     for ticket in tickets:
         stock = Stock.select().where(Stock.product_id == ticket['product_id']).\
             where(Stock.store_id == ticket['store_id']).first()
@@ -181,8 +206,14 @@ async def cancel(transaction_id: int, user=Depends(verify_cashier_access), user_
     return JSONResponse({"message": "The transaction has been canceled"})
 
 
-@transaction_routes.get("/bonus/list/{card_id}")
+@transaction_routes.get("/bonus/list/{card_id}", responses={
+    200: set_custom_response("OK", {"card_id": 1, "rewards": [{"product_id": 1, "units": 1}]}),
+    404: set_404_response()
+})
 async def get_bonus_list(card_id: int):
+    card = Card.select().where(Card.id == card_id).first()
+    if card is None:
+        raise HTTPException(404, detail={"message": "Card not found"})
     response = {}
     rewards = []
     products = Ap.select(Ap.product_id, fn.SUM(Ap.units).alias("Cant")).\
