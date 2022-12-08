@@ -61,10 +61,10 @@ async def verify_supervisor_access(user_data=Depends(validate_token)):
     return user_data
 
 
-def verify_credentials(user):
+def verify_credentials(user, get_position=False):
     key = getenv("SALT")
     fernet = Fernet(key.encode())
-    username = user.username.lower()
+    username = user.employee_id
     em = User.select().where(User.userName == username).dicts()
     if em:
         em = em[0]
@@ -79,6 +79,8 @@ def verify_credentials(user):
                 "position": em["position"],
                 "store": em["store_id"]
             }
+            if get_position:
+                return info, em['position']
             return info
         else:
             raise HTTPException(detail={"message": "incorrect password"}, status_code=400)
