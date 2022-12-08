@@ -18,7 +18,7 @@ class Employee(BaseModel):
 
 
 class EmployeeAuth(BaseModel):
-    employee_id: int
+    username: str
     password: str
 
 
@@ -29,6 +29,7 @@ class EmployeeRegister(BaseModel):
     password: str
     position: str
     store: int
+    username: str
 
     @pydantic.validator("position")
     def position_validate(cls, value):

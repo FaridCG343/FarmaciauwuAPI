@@ -64,8 +64,7 @@ async def verify_supervisor_access(user_data=Depends(validate_token)):
 def verify_credentials(user, get_position=False):
     key = getenv("SALT")
     fernet = Fernet(key.encode())
-    username = user.employee_id
-    em = User.select().where(User.userName == username).dicts()
+    em = User.select().where(User.userName == user.username).dicts()
     if em:
         em = em[0]
         store = Store.select(). \

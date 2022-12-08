@@ -24,6 +24,9 @@ async def register(new_user: EmployeeRegister):
     existing_employee = Employee.select().where(Employee.phoneNumber == new_user.phone_number).first()
     if existing_employee:
         raise HTTPException(409, detail={"message": "The phone number is already in use"})
+    existing_user = User.select().where(User.userName == new_user.username).first()
+    if existing_user:
+        raise HTTPException(409, detail={"message": "The user name is already in use"})
     new_employee = Employee.create(
         name=new_user.name,
         lastname=new_user.lastname,
@@ -34,7 +37,8 @@ async def register(new_user: EmployeeRegister):
         employee_id=new_employee.id,
         password=password,
         position=new_user.position,
-        store_id=store.id
+        store_id=store.id,
+        userName=new_user.username
     )
     return {"message": "New user has been created"}
 

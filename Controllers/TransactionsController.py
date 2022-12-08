@@ -168,7 +168,7 @@ async def redeem_rewards(request: TransactionRedeemRequest, employee=Depends(ver
 })
 async def cancel(transaction_id: int, user=Depends(verify_cashier_access), user_c: EmployeeAuth = None):
     if user['position'] == 'Cashier':
-        if user_c.employee_id != 0:
+        if user_c.username != "":
             user_a = verify_credentials(user_c)
             if user_a['position'] != 'Manager':
                 raise HTTPException(detail={"message": "The credentials belong to an unauthorized person"},
