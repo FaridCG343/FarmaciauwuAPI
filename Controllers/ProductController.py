@@ -124,3 +124,20 @@ async def update_product(product_id: int, product: ProductUpdate):
         raise HTTPException(409, detail={"message": "There's already an existing record"})
     return JSONResponse({"message": "Product updated successfully"})
 
+
+@product_routes.delete("/delete/{product_name}")
+async def delete_product(product_name: str):
+    product = Product.select().where(Product.name == product_name).first()
+    if product is None:
+        raise HTTPException(404, {"message": "Product not found"})
+    product.delete_instance()
+    return JSONResponse({"message": "product delete successfully"})
+
+
+@product_routes.delete("/delete/{product_id}")
+async def delete_product_by_id(product_id: int):
+    product = Product.select().where(Product.id == product_id).first()
+    if product is None:
+        raise HTTPException(404, {"message": "Product not found"})
+    product.delete_instance()
+    return JSONResponse({"message": "product delete successfully"})
