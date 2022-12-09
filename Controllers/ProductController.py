@@ -4,7 +4,7 @@ from Models.Product import Product
 from Models.Rule import Rule
 from fastapi.responses import JSONResponse
 from responseHelper import *
-from jwtFunctions import verify_inventory_manager_access
+from jwtFunctions import verify_inventory_manager_access, verify_manager_access
 from Requests.ProductRequest import ProductRequest, ProductUpdate
 
 
@@ -83,7 +83,7 @@ async def get_product_by_name(name: str):
     raise HTTPException(404, "Product not found")
 
 
-@product_routes.post("/register", dependencies=[Depends(verify_inventory_manager_access)], responses={
+@product_routes.post("/register", dependencies=[Depends(verify_manager_access)], responses={
     200: set_custom_response("OK", {"message": "Product registered successfully"}),
     409: set_409_response()
 })
