@@ -24,7 +24,7 @@ uwuAPI.include_router(stock_routes, prefix="/stock")
 
 uwuAPI.add_middleware(CORSMiddleware, allow_origins=['*'],
                       allow_credentials=True,
-                      allow_methods=["*"],
+                      allow_methods=["GET", "PUT", "POST", "DELETE"],
                       allow_headers=["*"], )
 
 
