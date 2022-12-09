@@ -13,8 +13,18 @@ product_routes = APIRouter(tags=['Product'])
 
 @product_routes.get("/list")
 async def get_list_products():
-    products = [product for product in Product.select().dicts()]
-    return products
+    # products = [product for product in Product.select().dicts()]
+    products = Product.select().dicts()
+    l_products = []
+    for product in products:
+        rule = Rule.select().where(Rule.product_id == product['id']).where(Rule.active == 1).first()
+        product["originalPrice"] = product["price"]
+        if rule:
+            if rule.type == "Discount":
+                product["price"] = round(product["price"] * (1 - rule.discount), 2)
+            product[rule.type] = rule.description
+        l_products.append(product)
+    return l_products
 
 
 @product_routes.get("/{product_id}", responses={
