@@ -11,6 +11,12 @@ from Requests.ProductRequest import ProductRequest, ProductUpdate
 product_routes = APIRouter(tags=['Product'])
 
 
+@product_routes.get("/list")
+async def get_list_products():
+    products = [product for product in Product.select().dicts()]
+    return products
+
+
 @product_routes.get("/{product_id}", responses={
     200: set_custom_response("OK", {
       "id": 1,

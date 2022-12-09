@@ -22,7 +22,7 @@ uwuAPI.include_router(store_routes, prefix="/store")
 uwuAPI.include_router(provider_routes, prefix="/provider", dependencies=[Depends(verify_inventory_manager_access)])
 uwuAPI.include_router(stock_routes, prefix="/stock")
 
-uwuAPI.add_middleware(CORSMiddleware, allow_origins=['http://127.0.0.1:5173'],
+uwuAPI.add_middleware(CORSMiddleware, allow_origins=['*'],
                       allow_credentials=True,
                       allow_methods=["*"],
                       allow_headers=["*"], )
