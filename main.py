@@ -54,7 +54,7 @@ async def login(user: EmployeeAuth, response: Response):
 
 @uwuAPI.post("/logout", tags=["Logout"])
 async def logout(response: Response):
-    response.delete_cookie(key="token")
+    response.delete_cookie(key="token_c")
     return {"message": "Logout successful"}
 
 

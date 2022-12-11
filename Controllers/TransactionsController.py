@@ -75,6 +75,13 @@ async def sale(request: TransactionSaleRequest, employee=Depends(verify_cashier_
 
     for product in request.products:
         product_temp = product.dict()
+        products_avaiable = Stock.select().\
+                            where(Stock.product_id == product.product_id).\
+                            where(Stock.store_id == employee['store']).first()
+        if products_avaiable < product.product_id:
+            new_transaction.delete_instance()
+            raise HTTPException(400, {"message": 
+                "The quantity of products cannot be greater than the quantity available"})
         product_temp['subtotal'] = product.units * product.price
         total += product_temp["subtotal"]
         Ticket.create(

@@ -2,9 +2,10 @@ import peewee
 from fastapi import APIRouter, HTTPException, Depends
 from Models.Product import Product
 from Models.Rule import Rule
+from Models.Stock import Stock
 from fastapi.responses import JSONResponse
 from responseHelper import *
-from jwtFunctions import verify_inventory_manager_access, verify_manager_access
+from jwtFunctions import verify_inventory_manager_access, verify_manager_access, verify_cashier_access
 from Requests.ProductRequest import ProductRequest, ProductUpdate
 
 
@@ -12,8 +13,7 @@ product_routes = APIRouter(tags=['Product'])
 
 
 @product_routes.get("/list")
-async def get_list_products():
-    # products = [product for product in Product.select().dicts()]
+async def get_list_products(user = Depends(verify_cashier_access)):
     products = Product.select().dicts()
     l_products = []
     for product in products:
@@ -23,6 +23,10 @@ async def get_list_products():
             if rule.type == "Discount":
                 product["price"] = round(product["price"] * (1 - rule.discount), 2)
             product[rule.type] = rule.description
+        products_avaiable = Stock.select().\
+                            where(Stock.product_id == product["id"]).\
+                            where(Stock.store_id == user['store']).first()
+        product['available'] = products_avaiable.available_products
         l_products.append(product)
     return l_products
 
@@ -83,7 +87,7 @@ async def get_product_by_name(name: str):
     raise HTTPException(404, "Product not found")
 
 
-@product_routes.post("/register", dependencies=[Depends(verify_manager_access)], responses={
+@product_routes.post("/create", dependencies=[Depends(verify_manager_access)], responses={
     200: set_custom_response("OK", {"message": "Product registered successfully"}),
     409: set_409_response()
 })
