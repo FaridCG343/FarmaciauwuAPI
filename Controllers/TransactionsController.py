@@ -78,7 +78,7 @@ async def sale(request: TransactionSaleRequest, employee=Depends(verify_cashier_
         products_avaiable = Stock.select().\
                             where(Stock.product_id == product.product_id).\
                             where(Stock.store_id == employee['store']).first()
-        if products_avaiable < product.product_id:
+        if products_avaiable.available_products < product.units:
             new_transaction.delete_instance()
             raise HTTPException(400, {"message": 
                 "The quantity of products cannot be greater than the quantity available"})
